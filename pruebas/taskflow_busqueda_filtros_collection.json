@@ -1,0 +1,517 @@
+{
+  "info": {
+    "name": "TaskFlow - Pruebas Busqueda y Filtros CP-01 a CP-12",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "CP-01 Listar tareas activas (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-01: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-01: Estructura JSON valida y sin tareas inactivas (activo != 0)', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) {",
+              "      pm.expect(Number(t.activo)).to.not.eql(0);",
+              "      pm.expect(Boolean(t.activo)).to.be.true;",
+              "    }",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-02 Buscar por codigo (?texto=TAR-)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=TAR-",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "TAR-"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-02: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-02: Coincidencias por codigo y sin tareas con activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    const catNombre = (t.Categoria && t.Categoria.nombre) || (t.categoria && t.categoria.nombre) || '';",
+              "    const textoCompleto = `${t.codigo_tarea || ''} ${t.responsable || ''} ${t.descripcion || ''} ${catNombre}`.toLowerCase();",
+              "    pm.expect(textoCompleto).to.include('tar-');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-03 Buscar responsable (?texto=Nicole)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=Nicole",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "Nicole"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-03: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-03: Coincidencias por responsable y sin tareas con activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    const catNombre = (t.Categoria && t.Categoria.nombre) || (t.categoria && t.categoria.nombre) || '';",
+              "    const textoCompleto = `${t.codigo_tarea || ''} ${t.responsable || ''} ${t.descripcion || ''} ${catNombre}`.toLowerCase();",
+              "    pm.expect(textoCompleto).to.include('nicole');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-04 Buscar descripcion (?texto=presentacion)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=presentación",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "presentación"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-04: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-04: Estructura array valida y sin tareas con activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-05 Buscar categoria (?texto=Estudio)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=Estudio",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "Estudio"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-05: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-05: Estructura array valida y sin tareas con activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-06 Filtrar prioridad alta (?prioridad=ALTA)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=ALTA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "ALTA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-06: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-06: Solamente prioridad ALTA y activo != 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    pm.expect(t.prioridad).to.eql('ALTA');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-07 Filtrar prioridad media (?prioridad=MEDIA)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=MEDIA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "MEDIA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-07: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-07: Solamente prioridad MEDIA y activo != 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    pm.expect(t.prioridad).to.eql('MEDIA');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-08 Filtrar estado (?estado=PENDIENTE)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=PENDIENTE",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "PENDIENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-08: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-08: Solamente estado PENDIENTE y activo != 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    pm.expect(t.estado).to.eql('PENDIENTE');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-09 Combinar filtros (?prioridad=ALTA&estado=PENDIENTE)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=ALTA&estado=PENDIENTE",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "ALTA"
+            },
+            {
+              "key": "estado",
+              "value": "PENDIENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-09: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-09: Cumple prioridad ALTA y estado PENDIENTE, sin activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    pm.expect(t.prioridad).to.eql('ALTA');",
+              "    pm.expect(t.estado).to.eql('PENDIENTE');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-10 Combinar los tres (?texto=Nicole&prioridad=ALTA&estado=PENDIENTE)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=Nicole&prioridad=ALTA&estado=PENDIENTE",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "Nicole"
+            },
+            {
+              "key": "prioridad",
+              "value": "ALTA"
+            },
+            {
+              "key": "estado",
+              "value": "PENDIENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-10: Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-10: Cumple texto, prioridad ALTA y estado PENDIENTE, sin activo = 0', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    pm.expect(t.prioridad).to.eql('ALTA');",
+              "    pm.expect(t.estado).to.eql('PENDIENTE');",
+              "    const catNombre = (t.Categoria && t.Categoria.nombre) || (t.categoria && t.categoria.nombre) || '';",
+              "    const textoCompleto = `${t.codigo_tarea || ''} ${t.responsable || ''} ${t.descripcion || ''} ${catNombre}`.toLowerCase();",
+              "    pm.expect(textoCompleto).to.include('nicole');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-11 Prioridad incorrecta (?prioridad=URGENTE -> 400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=URGENTE",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "URGENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-11: Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('CP-11: Retorna mensaje de validacion', function () {",
+              "  const txt = pm.response.text().toLowerCase();",
+              "  pm.expect(txt).to.satisfy(s => s.includes('prioridad') || s.includes('valid') || s.includes('error') || s.includes('inválid') || s.includes('invalid'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-12 Estado incorrecto (?estado=EN_ESPERA -> 400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=EN_ESPERA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "EN_ESPERA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-12: Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('CP-12: Retorna mensaje de validacion', function () {",
+              "  const txt = pm.response.text().toLowerCase();",
+              "  pm.expect(txt).to.satisfy(s => s.includes('estado') || s.includes('valid') || s.includes('error') || s.includes('inválid') || s.includes('invalid'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

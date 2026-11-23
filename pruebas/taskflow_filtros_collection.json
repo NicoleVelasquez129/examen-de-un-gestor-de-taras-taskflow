@@ -1,0 +1,356 @@
+{
+  "info": {
+    "name": "TaskFlow - Pruebas Filtros y Busqueda GET /api/tareas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Listado general y excluye eliminadas (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Retorna lista sin tareas eliminadas', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (typeof t.eliminada === 'boolean') {",
+              "      pm.expect(t.eliminada).to.be.false;",
+              "    }",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro valido por estado=COMPLETADA (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=COMPLETADA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "COMPLETADA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Todas las tareas tienen estado COMPLETADA', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => pm.expect(t.estado).to.eql('COMPLETADA'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro valido por prioridad=ALTA (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=ALTA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "ALTA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Todas las tareas tienen prioridad ALTA', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => pm.expect(t.prioridad).to.eql('ALTA'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro valido por categoria_id=2 (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?categoria_id=2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "categoria_id",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Todas las tareas pertenecen a categoria_id 2 e incluyen categoria', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => {",
+              "    pm.expect(Number(t.categoria_id)).to.eql(2);",
+              "    if (t.Categoria || t.categoria) {",
+              "      pm.expect(t.Categoria || t.categoria).to.be.an('object');",
+              "    }",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Busqueda por texto (Op.or en 4 campos: q=Nicole)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?q=Nicole",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "q",
+              "value": "Nicole"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Retorna coincidencias en alguno de los campos', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    const catNombre = (t.Categoria && t.Categoria.nombre) || (t.categoria && t.categoria.nombre) || '';",
+              "    const combined = `${t.codigo_tarea || ''} ${t.responsable || ''} ${t.descripcion || ''} ${catNombre}`.toLowerCase();",
+              "    pm.expect(combined).to.include('nicole');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtros combinados (Op.and: estado=COMPLETADA&prioridad=MEDIA&categoria_id=2)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=COMPLETADA&prioridad=MEDIA&categoria_id=2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "COMPLETADA"
+            },
+            {
+              "key": "prioridad",
+              "value": "MEDIA"
+            },
+            {
+              "key": "categoria_id",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Cumple todos los filtros simultaneamente (Op.and)', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => {",
+              "    pm.expect(t.estado).to.eql('COMPLETADA');",
+              "    pm.expect(t.prioridad).to.eql('MEDIA');",
+              "    pm.expect(Number(t.categoria_id)).to.eql(2);",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro invalido: estado=TERMINADA (400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=TERMINADA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "TERMINADA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400 por estado invalido', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro invalido: prioridad=URGENTE (400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=URGENTE",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "URGENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400 por prioridad invalida', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtro invalido: categoria_id=abc (400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?categoria_id=abc",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "categoria_id",
+              "value": "abc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400 por categoria_id no valido', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

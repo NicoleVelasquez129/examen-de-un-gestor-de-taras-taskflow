@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "TaskFlow - Pruebas PUT y DELETE Tareas (6.3)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Tareas - Obtener IDs para editar (004) y eliminar (005)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200 al listar tareas', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "",
+              "const tarea004 = lista.find(t => t.codigo_tarea === 'TAR-20261123-004');",
+              "const tarea005 = lista.find(t => t.codigo_tarea === 'TAR-20261123-005');",
+              "",
+              "const idEditar = tarea004 ? tarea004.id : (lista[lista.length - 2] && lista[lista.length - 2].id);",
+              "const idEliminar = tarea005 ? tarea005.id : (lista[lista.length - 1] && lista[lista.length - 1].id);",
+              "",
+              "pm.collectionVariables.set('id_editar', String(idEditar || ''));",
+              "pm.collectionVariables.set('id_eliminar', String(idEliminar || ''));",
+              "if (tarea004 && tarea004.fecha_registro) {",
+              "  pm.collectionVariables.set('fecha_registro_004', String(tarea004.fecha_registro));",
+              "}",
+              "",
+              "console.log('id_editar:', pm.collectionVariables.get('id_editar'));",
+              "console.log('id_eliminar:', pm.collectionVariables.get('id_eliminar'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-06 Edicion valida (PUT 200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Nicole Rojas\",\"descripcion\":\"Informe final corregido y revisado\",\"prioridad\":\"MEDIA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_editar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_editar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Datos actualizados y campos protegidos intactos', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.responsable).to.eql('Nicole Rojas');",
+              "  pm.expect(tarea.descripcion).to.eql('Informe final corregido y revisado');",
+              "  pm.expect(tarea.prioridad).to.eql('MEDIA');",
+              "  pm.expect(tarea.estado).to.eql('PENDIENTE');",
+              "  if (tarea.codigo_tarea) {",
+              "    pm.expect(tarea.codigo_tarea).to.eql('TAR-20261123-004');",
+              "  }",
+              "  const fechaInicial = pm.collectionVariables.get('fecha_registro_004');",
+              "  if (fechaInicial && tarea.fecha_registro) {",
+              "    pm.expect(String(tarea.fecha_registro)).to.eql(fechaInicial);",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campos de sistema ignorados en PUT (200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Nicole Rojas\",\"descripcion\":\"Informe final corregido y revisado\",\"prioridad\":\"MEDIA\",\"codigo_tarea\":\"HACK\",\"estado\":\"CANCELADA\",\"id\":999}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_editar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_editar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Ignora codigo_tarea, estado e id enviados en el body', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  const idEsperado = Number(pm.collectionVariables.get('id_editar'));",
+              "  pm.expect(Number(tarea.id)).to.eql(idEsperado);",
+              "  pm.expect(tarea.estado).to.not.eql('CANCELADA');",
+              "  if (tarea.codigo_tarea) {",
+              "    pm.expect(tarea.codigo_tarea).to.not.eql('HACK');",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Datos invalidos en PUT (400)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Ni\",\"descripcion\":\"corta\",\"prioridad\":\"URGENTE\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_editar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_editar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Retorna errores de validacion', function () {",
+              "  const txt = pm.response.text().toLowerCase();",
+              "  pm.expect(txt).to.satisfy(s => s.includes('error') || s.includes('responsable') || s.includes('descripcion') || s.includes('descripción') || s.includes('prioridad'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-11 ID inexistente en PUT (404)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Nicole Rojas\",\"descripcion\":\"Informe final corregido y revisado\",\"prioridad\":\"MEDIA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/9999",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "9999"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "});",
+              "pm.test('Mensaje indica que la tarea no existe', function () {",
+              "  pm.expect(pm.response.text().toLowerCase()).to.include('no existe');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ID no valido en PUT (400)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Nicole Rojas\",\"descripcion\":\"Informe final corregido y revisado\",\"prioridad\":\"MEDIA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/abc",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "abc"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Mensaje indica identificador no valido', function () {",
+              "  const txt = pm.response.text().toLowerCase();",
+              "  pm.expect(txt).to.satisfy(s => s.includes('no es válido') || s.includes('no es valido') || s.includes('identificador') || s.includes('inválido') || s.includes('invalido'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-09 Eliminar tarea (DELETE 200)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_eliminar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_eliminar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Mensaje de tarea eliminada correctamente', function () {",
+              "  const txt = pm.response.text().toLowerCase();",
+              "  pm.expect(txt).to.satisfy(s => s.includes('eliminada correctamente') || s.includes('eliminado correctamente') || s.includes('eliminada'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ya no aparece en el listado (GET 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('La tarea eliminada ya no esta en el listado', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  const idEliminado = String(pm.collectionVariables.get('id_eliminar'));",
+              "  const existe = lista.some(t => String(t.id) === idEliminado);",
+              "  pm.expect(existe).to.be.false;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Detalle de eliminada (GET 404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_eliminar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_eliminar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar de nuevo (DELETE 404)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_eliminar}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_eliminar}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 404 al eliminar nuevamente', function () {",
+              "  pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "id_editar",
+      "value": ""
+    },
+    {
+      "key": "id_eliminar",
+      "value": ""
+    },
+    {
+      "key": "fecha_registro_004",
+      "value": ""
+    }
+  ]
+}

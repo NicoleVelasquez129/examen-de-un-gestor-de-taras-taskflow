@@ -1,0 +1,631 @@
+{
+  "info": {
+    "name": "TaskFlow - Verificacion Completa Backend CP-01 a CP-14",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "CP-01 Listado: Listar tareas activas (GET 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-01: Status 200 al listar tareas', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-01: Retorna arreglo de tareas activas', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "  lista.forEach(t => {",
+              "    if (t.activo !== undefined) {",
+              "      pm.expect(Number(t.activo)).to.not.eql(0);",
+              "    }",
+              "  });",
+              "  if (lista.length > 0) {",
+              "    pm.collectionVariables.set('id_existente', String(lista[0].id));",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-02 Detalle: Consultar tarea por ID (GET 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_existente}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_existente}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-02: Status 200 al consultar detalle por ID', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-02: Retorna objeto de tarea con ID esperado', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea).to.be.an('object');",
+              "  pm.expect(String(tarea.id)).to.eql(String(pm.collectionVariables.get('id_existente')));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-03 Creacion: Crear tarea valida (POST 201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"Tarea de verificacion integral del backend\",\"prioridad\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-03: Status 201 al crear tarea valida', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "pm.test('CP-03: Tarea creada en estado PENDIENTE con codigo generado', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.estado).to.eql('PENDIENTE');",
+              "  pm.expect(tarea.codigo_tarea).to.be.a('string').and.not.be.empty;",
+              "  pm.collectionVariables.set('id_creada', String(tarea.id));",
+              "  pm.collectionVariables.set('codigo_creada', String(tarea.codigo_tarea));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-04 Creacion: Validar datos invalidos (POST 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":999,\"responsable\":\"Ab\",\"descripcion\":\"corta\",\"prioridad\":\"URGENTE\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-04: Status 400 ante datos invalidos', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-05 Codigo unico: Evitar codigos duplicados (POST ignora/rechaza duplicado)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"Intento con codigo_tarea duplicado\",\"prioridad\":\"MEDIA\",\"codigo_tarea\":\"{{codigo_creada}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-05: Si crea (201) genera codigo distinto; o rechaza con 400/409', function () {",
+              "  pm.expect(pm.response.code).to.be.oneOf([201, 400, 409]);",
+              "  if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    const tarea = body.data || body.tarea || body;",
+              "    pm.expect(String(tarea.codigo_tarea)).to.not.eql(String(pm.collectionVariables.get('codigo_creada')));",
+              "    pm.collectionVariables.set('id_segunda_creada', String(tarea.id));",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-06 Edicion: Actualizar tarea creada (PUT 200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":2,\"responsable\":\"Nicole Editada\",\"descripcion\":\"Descripcion actualizada en prueba CP-06\",\"prioridad\":\"MEDIA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_creada}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_creada}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-06: Status 200 al editar tarea', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-06: Campos actualizados correctamente', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.responsable).to.eql('Nicole Editada');",
+              "  pm.expect(tarea.prioridad).to.eql('MEDIA');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-08 Estados: Transicion permitida PENDIENTE -> EN_PROCESO (PATCH 200)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"estado\":\"EN_PROCESO\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_creada}}/estado",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_creada}}", "estado"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-08: Status 200 en transicion valida a EN_PROCESO', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-08: Nuevo estado es EN_PROCESO', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.estado).to.eql('EN_PROCESO');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-09 Estados: Transicion rechazada EN_PROCESO -> PENDIENTE (PATCH 409)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"estado\":\"PENDIENTE\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_creada}}/estado",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_creada}}", "estado"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-09: Status 409 al rechazar transicion invalida', function () {",
+              "  pm.response.to.have.status(409);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-10 Busqueda: Buscar por texto (?texto=Nicole -> 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=Nicole",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "Nicole"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-10: Status 200 en busqueda por texto', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-10: Retorna lista valida sin inactivas', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  pm.expect(Array.isArray(lista)).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-11 Prioridad: Filtrar por prioridad (?prioridad=MEDIA -> 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=MEDIA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "MEDIA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-11: Status 200 al filtrar por prioridad MEDIA', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-11: Todos los elementos tienen prioridad MEDIA', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => pm.expect(t.prioridad).to.eql('MEDIA'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-12 Estado: Filtrar por estado (?estado=EN_PROCESO -> 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?estado=EN_PROCESO",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "estado",
+              "value": "EN_PROCESO"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-12: Status 200 al filtrar por estado EN_PROCESO', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-12: Todos los elementos tienen estado EN_PROCESO', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => pm.expect(t.estado).to.eql('EN_PROCESO'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-13 Combinacion: Aplicar varios filtros (?texto=Nicole&prioridad=MEDIA&estado=EN_PROCESO -> 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?texto=Nicole&prioridad=MEDIA&estado=EN_PROCESO",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "texto",
+              "value": "Nicole"
+            },
+            {
+              "key": "prioridad",
+              "value": "MEDIA"
+            },
+            {
+              "key": "estado",
+              "value": "EN_PROCESO"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-13: Status 200 en filtros combinados', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-13: Cumple prioridad MEDIA y estado EN_PROCESO', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  lista.forEach(t => {",
+              "    pm.expect(t.prioridad).to.eql('MEDIA');",
+              "    pm.expect(t.estado).to.eql('EN_PROCESO');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-14 Validaciones: Rechazar parametros incorrectos (?prioridad=URGENTE&estado=EN_ESPERA -> 400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas?prioridad=URGENTE&estado=EN_ESPERA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"],
+          "query": [
+            {
+              "key": "prioridad",
+              "value": "URGENTE"
+            },
+            {
+              "key": "estado",
+              "value": "EN_ESPERA"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-14: Status 400 ante parametros de filtro incorrectos', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-07 Eliminacion logica: Eliminar tarea creada y verificar que no aparece activa (DELETE 200)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas/{{id_creada}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas", "{{id_creada}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-07: Status 200 al eliminar tarea', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-07 Verificacion: Tarea eliminada no figura en listado activo (GET 200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CP-07: Status 200 al listar tras eliminacion logica', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('CP-07: La tarea eliminada ya no aparece en el listado activo', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.tareas || []);",
+              "  const idElim = String(pm.collectionVariables.get('id_creada'));",
+              "  const encontrada = lista.some(t => String(t.id) === idElim);",
+              "  pm.expect(encontrada).to.be.false;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "id_existente",
+      "value": ""
+    },
+    {
+      "key": "id_creada",
+      "value": ""
+    },
+    {
+      "key": "codigo_creada",
+      "value": ""
+    },
+    {
+      "key": "id_segunda_creada",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+{
+  "info": {
+    "name": "TaskFlow - Pruebas API Tareas y Categorias",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Categorias (4 categorias esperadas)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/categorias",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "categorias"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Retorna las 4 categorias', function () {",
+              "  const json = pm.response.json();",
+              "  const lista = Array.isArray(json) ? json : (json.data || json.categorias || []);",
+              "  pm.expect(lista.length).to.eql(4);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-01 Tarea valida (201, PENDIENTE, TAR-20261123-004)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"Escribir el informe final del proyecto\",\"prioridad\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Estado PENDIENTE y codigo TAR-20261123-004', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.estado).to.eql('PENDIENTE');",
+              "  pm.expect(tarea.codigo_tarea).to.eql('TAR-20261123-004');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-02 Responsable corto (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"  Ab  \",\"descripcion\":\"Escribir el informe final del proyecto\",\"prioridad\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Incluye mensaje de responsable', function () {",
+              "  pm.expect(pm.response.text().toLowerCase()).to.include('responsable');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-03 Descripcion corta (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"corta\",\"prioridad\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Incluye mensaje de descripcion', function () {",
+              "  pm.expect(pm.response.text().toLowerCase()).to.satisfy(t => t.includes('descripcion') || t.includes('descripción'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-04 Prioridad invalida (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"Escribir el informe final del proyecto\",\"prioridad\":\"URGENTE\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Incluye mensaje de prioridad', function () {",
+              "  pm.expect(pm.response.text().toLowerCase()).to.include('prioridad');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-05 Categoria inexistente (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":999,\"responsable\":\"Nicole\",\"descripcion\":\"Escribir el informe final del proyecto\",\"prioridad\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Incluye mensaje de categoria', function () {",
+              "  pm.expect(pm.response.text().toLowerCase()).to.satisfy(t => t.includes('categoria') || t.includes('categoría'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campos de sistema ignorados (201, PENDIENTE, TAR-20261123-005)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,\"responsable\":\"Nicole\",\"descripcion\":\"Escribir el informe final del proyecto\",\"prioridad\":\"BAJA\",\"estado\":\"COMPLETADA\",\"codigo_tarea\":\"HACK\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Ignora estado COMPLETADA y codigo HACK', function () {",
+              "  const body = pm.response.json();",
+              "  const tarea = body.data || body.tarea || body;",
+              "  pm.expect(tarea.estado).to.eql('PENDIENTE');",
+              "  pm.expect(tarea.codigo_tarea).to.eql('TAR-20261123-005');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "JSON mal formado (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoria_id\":1,",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tareas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tareas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code es 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Mensaje de JSON no valido', function () {",
+              "  pm.expect(pm.response.text()).to.include('El cuerpo de la petición no es un JSON válido');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
