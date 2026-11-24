@@ -799,80 +799,84 @@ function App() {
                   {tareas.map((tarea) => (
                     <tr key={tarea.id}>
 
-                      <td>
+                      <td data-label="Código">
                         <strong>{tarea.codigo_tarea}</strong>
                       </td>
 
-                      <td>{tarea.descripcion}</td>
+                      <td data-label="Descripción">{tarea.descripcion}</td>
 
-                      <td>{tarea.responsable}</td>
+                      <td data-label="Responsable">{tarea.responsable}</td>
 
-                      <td>{obtenerNombreCategoria(tarea)}</td>
+                      <td data-label="Categoría">
+                        {obtenerNombreCategoria(tarea)}
+                      </td>
 
-                      <td>
+                      <td data-label="Prioridad">
                         <span className={`badge-prioridad ${tarea.prioridad.toLowerCase()}`}>
                           {tarea.prioridad}
                         </span>
                       </td>
 
-                      <td>
+                      <td data-label="Estado">
                         <span className={`badge-estado ${tarea.estado.toLowerCase()}`}>
                           {formatoEstado(tarea.estado)}
                         </span>
                       </td>
 
-                      <td>
+                      <td data-label="Acciones">
                         <div className="action-buttons">
-
-                          <button
-                            type="button"
-                            className="action-btn detail-btn"
-                            onClick={() => verDetalle(tarea.id)}
-                          >
-                            Ver
-                          </button>
-
-                          <button
-                            type="button"
-                            className="action-btn edit-btn"
-                            onClick={() => editarTarea(tarea.id)}
-                          >
-                            Editar
-                          </button>
-
-                          {transiciones[tarea.estado].length > 0 && (
-                            <select
-                              className="state-select"
-                              aria-label={`Cambiar estado de ${tarea.codigo_tarea}`}
-                              defaultValue=""
-                              onChange={(e) => {
-                                const nuevoEstado = e.target.value;
-                                if (nuevoEstado) {
-                                  cambiarEstado(tarea.id, nuevoEstado);
-                                  e.target.value = '';
-                                }
-                              }}
+                          <div className="action-primary-actions">
+                            <button
+                              type="button"
+                              className="action-btn detail-btn"
+                              onClick={() => verDetalle(tarea.id)}
                             >
-                              <option value="" disabled>
-                                Cambiar estado
-                              </option>
+                              Ver
+                            </button>
 
-                              {transiciones[tarea.estado].map((estado) => (
-                                <option key={estado} value={estado}>
-                                  {formatoEstado(estado)}
+                            <button
+                              type="button"
+                              className="action-btn edit-btn"
+                              onClick={() => editarTarea(tarea.id)}
+                            >
+                              Editar
+                            </button>
+                          </div>
+
+                          <div className="action-secondary-actions">
+                            {transiciones[tarea.estado].length > 0 && (
+                              <select
+                                className="state-select"
+                                aria-label={`Cambiar estado de ${tarea.codigo_tarea}`}
+                                defaultValue=""
+                                onChange={(e) => {
+                                  const nuevoEstado = e.target.value;
+                                  if (nuevoEstado) {
+                                    cambiarEstado(tarea.id, nuevoEstado);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              >
+                                <option value="" disabled>
+                                  Cambiar estado
                                 </option>
-                              ))}
-                            </select>
-                          )}
 
-                          <button
-                            type="button"
-                            className="action-btn delete-btn"
-                            onClick={() => eliminarTarea(tarea.id)}
-                          >
-                            Eliminar
-                          </button>
+                                {transiciones[tarea.estado].map((estado) => (
+                                  <option key={estado} value={estado}>
+                                    {formatoEstado(estado)}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
 
+                            <button
+                              type="button"
+                              className="action-btn delete-btn"
+                              onClick={() => eliminarTarea(tarea.id)}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
                         </div>
                       </td>
 

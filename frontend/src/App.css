@@ -259,8 +259,14 @@ textarea {
 }
 
 .task-counter {
-  color: #b7c0d0;
-  font-size: 13px;
+  flex: none;
+  padding: 6px 11px;
+  border: 1px solid #334675;
+  border-radius: 999px;
+  background: #192b58;
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .empty-state {
@@ -291,11 +297,17 @@ textarea {
 .table-container {
   width: 100%;
   overflow-x: auto;
-  border-radius: 8px;
+  border: 1px solid #454545;
+  border-radius: 12px;
+  background: #252525;
+  scrollbar-color: #606060 #252525;
+  scrollbar-width: thin;
 }
 
 .task-table {
   width: 100%;
+  min-width: 800px;
+  table-layout: fixed;
   border-collapse: collapse;
   color: #e5e7eb;
   font-size: 13px;
@@ -304,19 +316,66 @@ textarea {
 
 .task-table th,
 .task-table td {
-  padding: 11px 9px;
-  border-bottom: 1px solid #484848;
+  padding: 13px 12px;
+  border-bottom: 1px solid #414141;
   vertical-align: middle;
 }
 
 .task-table th {
-  color: #cbd5e1;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #202a42;
+  color: #dbe5f6;
   font-weight: 700;
   white-space: nowrap;
 }
 
+.task-table tbody tr {
+  background: #2b2b2b;
+  transition: background-color 140ms ease;
+}
+
+.task-table tbody tr:nth-child(even) {
+  background: #303030;
+}
+
+.task-table tbody tr:hover {
+  background: #3a3d45;
+}
+
 .task-table td strong {
+  color: #bfdbfe;
+  font-size: 12px;
   white-space: nowrap;
+}
+
+.task-table th:nth-child(1),
+.task-table td:nth-child(1) {
+  width: 14%;
+}
+
+.task-table th:nth-child(2),
+.task-table td:nth-child(2) {
+  width: 20%;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.task-table th:nth-child(3),
+.task-table td:nth-child(3) {
+  width: 12%;
+  overflow-wrap: anywhere;
+}
+
+.task-table th:nth-child(4),
+.task-table td:nth-child(4) {
+  width: 10%;
+}
+
+.task-table th:last-child,
+.task-table td:last-child {
+  width: 20%;
 }
 
 .footer {
@@ -436,19 +495,30 @@ textarea {
 /* BOTONES DE ACCIONES */
 .action-buttons {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  min-width: 230px;
+  min-width: 0;
+}
+
+.action-primary-actions,
+.action-secondary-actions {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
 }
 
 .action-btn {
-  padding: 7px 10px;
+  flex: 1;
+  min-height: 31px;
+  min-width: 0;
+  padding: 6px 7px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .detail-btn {
@@ -471,9 +541,12 @@ textarea {
 }
 
 .state-select {
-  max-width: 125px;
-  padding: 7px;
-  border: 1px solid #cbd5e1;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 31px;
+  padding: 6px 8px;
+  border: 1px solid #555;
   border-radius: 6px;
   font-size: 11px;
   background: #080808;
@@ -520,9 +593,6 @@ button:disabled {
     grid-column: auto;
   }
 
-  .action-buttons {
-    min-width: 200px;
-  }
 }
 
 /* BÚSQUEDA Y FILTROS */
@@ -601,5 +671,76 @@ button:disabled {
 
   .section-heading {
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 800px) {
+  .table-container {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .task-table,
+  .task-table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .task-table thead {
+    display: none;
+  }
+
+  .task-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+    margin-bottom: 12px;
+    padding: 6px 13px;
+    border: 1px solid #454545;
+    border-radius: 12px;
+    background: #2b2b2b;
+  }
+
+  .task-table tbody tr:nth-child(even) {
+    background: #303030;
+  }
+
+  .task-table td {
+    display: flex;
+    width: auto !important;
+    min-width: 0;
+    max-width: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 10px 0;
+    border-bottom: 1px solid #414141;
+    overflow-wrap: anywhere;
+  }
+
+  .task-table td::before {
+    content: attr(data-label);
+    color: #9ca3af;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .task-table td:nth-child(1),
+  .task-table td:nth-child(2),
+  .task-table td:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .task-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .action-buttons {
+    width: 100%;
   }
 }
